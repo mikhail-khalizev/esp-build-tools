@@ -1,0 +1,66 @@
+diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc++-v3/libsupc++/eh_exception.cc /home/micky/source/espressif/libstdc++-v3/libsupc++/eh_exception.cc
+--- a/libstdc++-v3/libsupc++/eh_exception.cc	2019-09-28 23:24:02.000000000 +0300
++++ b/libstdc++-v3/libsupc++/eh_exception.cc	2019-09-29 01:53:46.709044500 +0300
+@@ -26,6 +26,16 @@
+ #include "exception"
+ #include <cxxabi.h>
+ 
+-std::exception::~exception() _GLIBCXX_USE_NOEXCEPT { }
++std::exception::~exception() _GLIBCXX_USE_NOEXCEPT {
++  if (delete_extra != ((void*)0) && _extra != ((void*)0)) {
++    delete_extra(this, _extra);
++    _extra = ((void*)0);
++  }
++}
++
++void (*std::exception::create_extra)(exception* ex, void** extra_ptr);
++void (*std::exception::copy_extra)(exception* to_ex, void** to_extra_ptr, const exception* from_ex, const void* from_extra);
++void (*std::exception::move_extra)(exception* to_ex, void** to_extra_ptr, exception* from_ex, void* from_extra);
++void (*std::exception::delete_extra)(exception* ex, void* extra);
+ 
+ std::bad_exception::~bad_exception() _GLIBCXX_USE_NOEXCEPT { }
+diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc++-v3/libsupc++/exception.h /home/micky/source/espressif/libstdc++-v3/libsupc++/exception.h
+--- a/libstdc++-v3/libsupc++/exception	2019-09-28 23:24:02.000000000 +0300
++++ b/libstdc++-v3/libsupc++/exception	2019-09-29 01:53:37.150502500 +0300
+@@ -59,13 +59,40 @@
+    */
+   class exception
+   {
++#define EXCEPTION_EXTRA_ENABLE
++    void* _extra = ((void*)0);
++
+   public:
+-    exception() _GLIBCXX_USE_NOEXCEPT { }
++
++    static void (*create_extra)(exception* ex, void** extra_ptr);
++    static void (*copy_extra)(exception* to_ex, void** to_extra_ptr, const exception* from_ex, const void* from_extra);
++    static void (*move_extra)(exception* to_ex, void** to_extra_ptr, exception* from_ex, void* from_extra);
++    static void (*delete_extra)(exception* ex, void* extra);
++
++    exception() _GLIBCXX_USE_NOEXCEPT {
++      if (create_extra != ((void*)0))
++        create_extra(this, &_extra);
++    }
++    exception(const exception& ex) _GLIBCXX_USE_NOEXCEPT {
++      if (copy_extra != ((void*)0) && ex._extra != ((void*)0))
++        copy_extra(this, &_extra, &ex, ex._extra);
++    }
++#if 201103L <= __cplusplus
++    exception(exception&& ex) _GLIBCXX_USE_NOEXCEPT {
++      if (move_extra != ((void*)0) && ex._extra != ((void*)0))
++      {
++        move_extra(this, &_extra, &ex, ex._extra);
++        ex._extra = ((void*)0);
++      }
++    }
++#endif
+     virtual ~exception() _GLIBCXX_USE_NOEXCEPT;
+ 
+     /** Returns a C-style character string describing the general cause
+      *  of the current error.  */
+     virtual const char* what() const _GLIBCXX_USE_NOEXCEPT;
++
++    const void* get_extra() const { return _extra; }
+   };
+ 
+ } // namespace std

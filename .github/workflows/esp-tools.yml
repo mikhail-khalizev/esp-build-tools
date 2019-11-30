@@ -1,0 +1,96 @@
+name: esp-tools
+
+on:
+  push:
+    paths:
+      - 'esp/**'
+  schedule:
+      - cron:  '0 10 * * WED'
+      
+env:
+  TAG_VERSION: "3.3"
+  IDF_BRANCH: "release/v3.3"
+  ARDUINO_BRANCH: "idf-release/v3.3"
+  TOOLCHAIN_BRANCH: "xtensa-1.22.x"
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.workflow }}"
+  GITHUB_DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
+  GITHUB_DOCKER_REGISTRY: docker.pkg.github.com
+  GITHUB_DOCKER_REGISTRY_REPOSITORY: "docker.pkg.github.com/${{ github.repository }}/${{ github.workflow }}"
+
+jobs:
+
+  build-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Login
+      run: |
+        docker login -u $DOCKER_HUB_USERNAME -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+        docker login -u $GITHUB_DOCKER_USERNAME -p ${{ secrets.GITHUB_DOCKER_PASSWORD }} $GITHUB_DOCKER_REGISTRY
+        
+    - name: Checkout
+      uses: actions/checkout@v1
+    
+    - name: Build xtensa-gcc
+      run: "
+           cd esp
+        && (docker pull $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc || true)
+        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc || true)
+        && docker build
+            --pull
+            --target tools-xtensa-gcc
+            --tag local-tools-xtensa-gcc
+            --build-arg IDF_BRANCH
+            --build-arg ARDUINO_BRANCH
+            --build-arg TOOLCHAIN_BRANCH
+            --cache-from $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
+            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
+            -f Dockerfile .
+        "
+        
+    - name: Publish xtensa-gcc locally
+      run: |
+        docker tag local-tools-xtensa-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
+    
+    - name: Build esp
+      run: "
+           cd esp
+        && (docker pull $DOCKER_HUB_REGISTRY_REPOSITORY:latest || true)
+        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools || true)
+        && docker build
+            --pull
+            --target tools
+            --tag local-tools
+            --build-arg IDF_BRANCH
+            --build-arg ARDUINO_BRANCH
+            --build-arg TOOLCHAIN_BRANCH
+            --cache-from local-tools-xtensa-gcc
+            --cache-from $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
+            -f Dockerfile .
+        "
+    
+    - name: Publish esp locally
+      if: github.ref != 'refs/heads/master'
+      run: |
+        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
+            
+    - name: Publish to hub.docker.com
+      if: github.ref == 'refs/heads/master'
+      run: |
+        DAY_STAMP=`date +%Y-%m-%d`
+        
+        docker tag local-tools-xtensa-gcc $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
+        
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest

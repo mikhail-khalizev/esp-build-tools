@@ -36,7 +36,6 @@ jobs:
     - name: Build xtensa-gcc
       run: "
            cd esp
-        && (docker pull $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc || true)
         && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc || true)
         && docker build
             --pull
@@ -45,7 +44,6 @@ jobs:
             --build-arg IDF_BRANCH
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
-            --cache-from $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
             --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
             -f Dockerfile .
         "
@@ -83,14 +81,13 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         DAY_STAMP=`date +%Y-%m-%d`
-        
-        docker tag local-tools-xtensa-gcc $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest-xtensa-gcc
-        
+                
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
 
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest

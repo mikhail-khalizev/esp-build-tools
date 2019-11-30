@@ -1,6 +1,6 @@
 # --- Initialize. ---
 
-FROM ubuntu as tools-base
+FROM ubuntu as base
 
 ENV HOME=/root
 WORKDIR ${HOME}
@@ -9,7 +9,7 @@ SHELL ["/bin/bash", "-c"]
 
 # --- Install xtensa gcc. ---
 
-FROM tools-base as tools-xtensa-gcc
+FROM base as tools-xtensa-gcc
 
 RUN    apt-get update \
     && apt-get install -y \
@@ -49,9 +49,12 @@ RUN    mkdir ~/esp \
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
 
-# --- Install esp-idf build apps. ---
+# --- Install esp-idf, arduino-esp32, esp-mdf. ---
+# TODO Add esp-adf?
 
-FROM tools-base as tools-pre
+# git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#get-esp-idf
+
+FROM base as tools
 
 RUN    apt-get update \
     && apt-get install -y \
@@ -62,12 +65,6 @@ RUN    apt-get update \
 COPY --from=tools-xtensa-gcc /root/esp/xtensa-esp32-elf/ /root/esp/xtensa-esp32-elf/
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
-
-# --- Install esp-idf, arduino-esp32, esp-mdf. ---
-# TODO Add esp-adf?
-
-# git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#get-esp-idf
-
 ARG IDF_BRANCH=release/v3.3
 ARG ARDUINO_BRANCH=idf-release/v3.3
 
@@ -75,27 +72,35 @@ ENV IDF_PATH ${HOME}/esp/esp-idf
 ENV MDF_PATH ${HOME}/esp/esp-mdf
 ENV PATH="${HOME}/esp/esp-idf/components/esptool_py/esptool:${HOME}/esp/esp-idf/components/espcoredump:${HOME}/esp/esp-idf/components/partition_table:${HOME}/esp/esp-idf/tools:${PATH}"
 
+# Install python requirements in separate docker image slot.
 RUN    cd ~/esp \
+    && git clone -b $IDF_BRANCH --single-branch --depth 1 https://github.com/espressif/esp-idf.git \
+    && cd esp-idf \
+    \
+    `# Add modules from '$IDF_PATH/tools/tiny-test-fw/requirements.txt'.` \
+    && printf "pyyaml\njunit_xml\nnetifaces\nmatplotlib\n" >> $IDF_PATH/requirements.txt \
+    && python -m pip install --user -r $IDF_PATH/requirements.txt \
+    \
+    && cd ~ \
+    && rm -rf ~/esp/esp-idf
+
+COPY project.mk .
+
+RUN    set +x \
+    && cd ~/esp \
     && git clone -b $IDF_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/esp-idf.git \
     && cd esp-idf \
     && git describe --always --tags --dirty > version.txt \
-    && rm -rf .git .gitmodules \
     \
     && printf "\nSUPPORTED_TOOLCHAIN_COMMIT_DESC = `xtensa-esp32-elf-gcc --version | sed -E -n 's|.*\(crosstool-NG (.*)\).*|\1|gp'`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/make/project.mk \
     && sed -i 's:static bool abort_called;:bool abort_called;:g' $IDF_PATH/components/esp32/panic.c `# Used in 'xt_exception_handler_isr' method.` \
     \
-    `# Add modules from '$IDF_PATH/tools/tiny-test-fw/requirements.txt'.` \
-    && printf "pyyaml\njunit_xml\nnetifaces\nmatplotlib\n" >> $IDF_PATH/requirements.txt \
-    && python -m pip install --user -r $IDF_PATH/requirements.txt \
-    \
-    \
     && cd $IDF_PATH/components \
     && git clone -b $ARDUINO_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/arduino-esp32 arduino \
     && cd arduino \
     && git describe --always --tags --dirty > version.txt \
-    && rm -rf .git .gitmodules \
     \
     `# Fix 'iothubtransport_mqtt_common.c' compilation error.` \
     && printf "\nCFLAGS += -Wno-maybe-uninitialized\n" >> $IDF_PATH/components/arduino/component.mk \
@@ -106,24 +111,22 @@ RUN    cd ~/esp \
     && git clone --single-branch --depth 1 https://github.com/espressif/esp-mdf.git \
     && cd esp-mdf \
     && git describe --always --tags --dirty > version.txt \
-    && rm -rf .git .gitmodules \
     \
-    && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk
-
-COPY project.mk  esp/esp-idf/make/
-
-
-# --- Check that example project builds successfully. ---
-
-FROM tools-pre as tools-check
-
-RUN    cd ~/esp \
-    && cp -r $IDF_PATH/examples/get-started/hello_world . \
-    && cd ~/esp/hello_world \
+    && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk \
+    && mv ~/project.mk $IDF_PATH/make/ \
+    \
+    \
+    `# Check that example project builds successfully.` \
+    && cd ~/esp \
+    && cd $IDF_PATH/examples/get-started/hello_world \
     && cp $IDF_PATH/components/arduino/tools/sdk/sdkconfig . \
     && make -j8 defconfig \
-    && make -j8
-
-# --- Result target. ---
-
-FROM tools-pre as tools
+    && make -j8 \
+    \
+    \
+    `# Reduce size` \
+    && cd ~/esp \
+    && find \( -name examples -o -name doc -o -name docs -o -name testdata -o -name '.git*' -o -name '.*.yml' \) -exec rm -rf {} + \
+    && cd $IDF_PATH/components \
+    && rm -rf arduino/tools \
+    && find \( -name tests \) -exec rm -rf {} +

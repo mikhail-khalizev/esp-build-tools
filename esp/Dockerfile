@@ -27,26 +27,32 @@ COPY *.patch  my-docker/
 # NOTE. Когда esp-idf официально перейдет на GCC 8.2 стоит изменить команду копирования patch на 'cp ~/my-docker/*.patch `./get-gcc-patch-dir.sh`'.
 # COPY get-gcc-patch-dir.sh  my-docker/
 
+ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
+
 RUN    mkdir ~/esp \
     && cd ~/esp \
     && git clone -b $TOOLCHAIN_BRANCH --single-branch --depth 1 https://github.com/espressif/crosstool-NG.git \
     \
     && cd crosstool-NG \
-    && ./bootstrap && ./configure --enable-local && make -j8 \
+    && ./bootstrap \
+    && ./configure --enable-local \
+    && make -j8 \
     \
-    && sed -i 's: *-fno-rtti *::g' ./samples/xtensa-esp32-elf/crosstool.config \
     && ./ct-ng xtensa-esp32-elf \
+    && sed -i 's: *-fno-rtti *::g' ./.config \
     && echo "CT_ALLOW_BUILD_AS_ROOT=y" >> .config \
     && echo "CT_ALLOW_BUILD_AS_ROOT_SURE=y" >> .config \
+    && echo "CT_PREFIX_DIR=${HOME}/esp/xtensa-esp32-elf" >> .config \
     && cp ~/my-docker/*.patch ./patches/gcc/5.2.0/ \
     \
+    && mkdir ~/src \
     && ./ct-ng build || (tail -n 100 build.log; exit 1) \
-    && chmod -R u+w builds/xtensa-esp32-elf \
-    && mv ./builds/xtensa-esp32-elf ~/esp/ \
+    \
     && cd ~ \
-    && rm -rf ~/esp/crosstool-NG ~/my-docker ~/esp/xtensa-esp32-elf/build.log.bz2
+    && rm -rf ~/src ~/my-docker ~/esp/crosstool-NG ~/esp/xtensa-esp32-elf/build.log.bz2 \
+    \
+    && xtensa-esp32-elf-gcc -v
 
-ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
 
 # --- Install esp-idf, arduino-esp32, esp-mdf. ---

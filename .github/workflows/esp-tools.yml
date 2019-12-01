@@ -36,22 +36,24 @@ jobs:
     - name: Build xtensa-gcc
       run: "
            cd esp
-        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc || true)
+        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc || true)
+        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc || true)  `# TODO remove this line`
         && docker build
             --pull
             --target tools-xtensa-gcc
-            --tag local-tools-xtensa-gcc
+            --tag local-tools-gcc
             --build-arg IDF_BRANCH
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
-            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
+            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
+            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc  `# TODO remove this line`
             -f Dockerfile .
         "
         
     - name: Publish xtensa-gcc locally
       run: |
-        docker tag local-tools-xtensa-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
-        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc
+        docker tag local-tools-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
     
     - name: Build esp
       run: "
@@ -65,7 +67,7 @@ jobs:
             --build-arg IDF_BRANCH
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
-            --cache-from local-tools-xtensa-gcc
+            --cache-from local-tools-gcc
             --cache-from $DOCKER_HUB_REGISTRY_REPOSITORY:latest
             --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
             -f Dockerfile .

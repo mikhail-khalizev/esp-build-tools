@@ -37,7 +37,6 @@ jobs:
       run: "
            cd esp
         && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc || true)
-        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc || true)  `# TODO remove this line`
         && docker build
             --pull
             --target tools-xtensa-gcc
@@ -46,7 +45,6 @@ jobs:
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
             --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
-            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-xtensa-gcc  `# TODO remove this line`
             -f Dockerfile .
         "
         

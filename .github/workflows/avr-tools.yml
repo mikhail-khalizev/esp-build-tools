@@ -1,0 +1,62 @@
+name: avr-tools
+
+on:
+  push:
+    paths:
+      - 'avr/**'
+  schedule:
+      - cron:  '0 12 * * WED'
+      
+env:
+  CROSSTOOL_NG_VERSION: "1.24.0"
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.workflow }}"
+  GITHUB_DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
+  GITHUB_DOCKER_REGISTRY: docker.pkg.github.com
+  GITHUB_DOCKER_REGISTRY_REPOSITORY: "docker.pkg.github.com/${{ github.repository }}/${{ github.workflow }}"
+
+jobs:
+
+  build-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Login
+      run: |
+        docker login -u $DOCKER_HUB_USERNAME -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+        docker login -u $GITHUB_DOCKER_USERNAME -p ${{ secrets.GITHUB_DOCKER_PASSWORD }} $GITHUB_DOCKER_REGISTRY
+        
+    - name: Checkout
+      uses: actions/checkout@v1
+    
+    - name: Build avr-gcc
+      run: "
+           cd avr
+        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc || true)
+        && docker build
+            --pull
+            --target tools-gcc
+            --tag local-tools-gcc
+            --build-arg CROSSTOOL_NG_VERSION
+            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
+            -f Dockerfile .
+        "
+        
+    - name: Publish avr-gcc locally
+      run: |
+        docker tag local-tools-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
+    
+    - name: Publish to hub.docker.com
+      if: github.ref == 'refs/heads/master'
+      run: |
+        DAY_STAMP=`date +%Y-%m-%d`
+                
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$DAY_STAMP
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
+
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$DAY_STAMP
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest

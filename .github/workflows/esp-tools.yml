@@ -59,7 +59,6 @@ jobs:
         && (docker pull $DOCKER_HUB_REGISTRY_REPOSITORY:latest || true)
         && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools || true)
         && docker build
-            --pull
             --target tools
             --tag local-tools
             --build-arg IDF_BRANCH

@@ -41,13 +41,19 @@ jobs:
             --build-arg CROSSTOOL_NG_VERSION
             --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
             -f Dockerfile .
+        && docker build
+            --target tools
+            --tag local-tools
+            --build-arg CROSSTOOL_NG_VERSION
+            --cache-from local-tools-gcc
+            -f Dockerfile .
         "
         
     - name: Publish avr-gcc locally
       run: |
         docker tag local-tools-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
         docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
-    
+            
     - name: Publish to hub.docker.com
       if: github.ref == 'refs/heads/master'
       run: |

@@ -48,4 +48,3 @@ FROM base as tools
 
 COPY --from=tools-gcc /root/avr/gcc/ /root/avr/gcc/
 ENV PATH="${HOME}/avr/gcc/bin:${PATH}"
-

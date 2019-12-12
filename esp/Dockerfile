@@ -137,4 +137,3 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && rm -rf arduino/tools \
     && find \( -name tests \) -exec rm -rf {} +
-

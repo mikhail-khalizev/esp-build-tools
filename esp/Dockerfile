@@ -55,8 +55,7 @@ RUN    mkdir ~/esp \
 
 
 
-# --- Install esp-idf, arduino-esp32, esp-mdf. ---
-# TODO Add esp-adf?
+# --- Install esp-idf, arduino-esp32. ---
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#get-esp-idf
 
@@ -75,7 +74,6 @@ ARG IDF_BRANCH=release/v3.3
 ARG ARDUINO_BRANCH=idf-release/v3.3
 
 ENV IDF_PATH ${HOME}/esp/esp-idf
-ENV MDF_PATH ${HOME}/esp/esp-mdf
 ENV PATH="${HOME}/esp/esp-idf/components/esptool_py/esptool:${HOME}/esp/esp-idf/components/espcoredump:${HOME}/esp/esp-idf/components/partition_table:${HOME}/esp/esp-idf/tools:${PATH}"
 
 # Install python requirements in separate docker image slot.
@@ -90,7 +88,9 @@ RUN    cd ~/esp \
     && cd ~ \
     && rm -rf ~/esp/esp-idf
 
-COPY project.mk .
+# Disable mdf.
+# ENV MDF_PATH ${HOME}/esp/esp-mdf
+# COPY project.mk .
 
 RUN    set +x \
     && cd ~/esp \
@@ -113,13 +113,14 @@ RUN    set +x \
     `# && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/components/arduino/component.mk` \
     \
     \
-    && cd ~/esp \
-    && git clone --single-branch --depth 1 https://github.com/espressif/esp-mdf.git \
-    && cd esp-mdf \
-    && git describe --always --tags --dirty > version.txt \
-    \
-    && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk \
-    && mv ~/project.mk $IDF_PATH/make/ \
+    `### Disable mdf.                                                                    ` \
+    `#   && cd ~/esp                                                                     ` \
+    `#   && git clone --single-branch --depth 1 https://github.com/espressif/esp-mdf.git ` \
+    `#   && cd $MDF_PATH                                                                 ` \
+    `#   && git describe --always --tags --dirty > version.txt                           ` \
+    `#                                                                                   ` \
+    `#   && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk                  ` \
+    `#   && mv ~/project.mk $IDF_PATH/make/                                              ` \
     \
     \
     `# Check that example project builds successfully.` \

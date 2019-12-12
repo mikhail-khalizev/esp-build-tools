@@ -5,8 +5,8 @@ on:
     paths:
       - 'esp/**'
   schedule:
-      - cron:  '0 10 * * WED'
-      
+      - cron: '0 10 * * WED'
+
 env:
   TAG_VERSION: "3.3"
   IDF_BRANCH: "release/v3.3"
@@ -29,14 +29,13 @@ jobs:
       run: |
         docker login -u $DOCKER_HUB_USERNAME -p ${{ secrets.DOCKER_HUB_PASSWORD }}
         docker login -u $GITHUB_DOCKER_USERNAME -p ${{ secrets.GITHUB_DOCKER_PASSWORD }} $GITHUB_DOCKER_REGISTRY
-        
+
     - name: Checkout
       uses: actions/checkout@v1
-    
+
     - name: Build xtensa-gcc
       run: "
            cd esp
-        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc || true)
         && docker build
             --pull
             --target tools-xtensa-gcc
@@ -44,20 +43,12 @@ jobs:
             --build-arg IDF_BRANCH
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
-            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
             -f Dockerfile .
         "
-        
-    - name: Publish xtensa-gcc locally
-      run: |
-        docker tag local-tools-gcc $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
-        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools-gcc
-    
+
     - name: Build esp
       run: "
            cd esp
-        && (docker pull $DOCKER_HUB_REGISTRY_REPOSITORY:latest || true)
-        && (docker pull $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools || true)
         && docker build
             --target tools
             --tag local-tools
@@ -65,22 +56,14 @@ jobs:
             --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
             --cache-from local-tools-gcc
-            --cache-from $DOCKER_HUB_REGISTRY_REPOSITORY:latest
-            --cache-from $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
             -f Dockerfile .
         "
-    
-    - name: Publish esp locally
-      if: github.ref != 'refs/heads/master'
-      run: |
-        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
-        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:tmp-tools
-            
+
     - name: Publish to hub.docker.com
       if: github.ref == 'refs/heads/master'
       run: |
         DAY_STAMP=`date +%Y-%m-%d`
-                
+
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest

@@ -21,7 +21,7 @@ ENV PATH="${HOME}/avr/gcc/bin:${PATH}"
 # Link from http://crosstool-ng.github.io/download/
 ARG CROSSTOOL_NG_VERSION=1.24.0
     
-RUN	   wget http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-$CROSSTOOL_NG_VERSION.tar.xz \
+RUN	   wget https://github.com/crosstool-ng/crosstool-ng/archive/crosstool-ng-$CROSSTOOL_NG_VERSION.tar.gz \
 	&& tar xf crosstool-ng-*.tar* \
     && rm crosstool-ng-*.tar* \
     && mv crosstool-ng* crosstool-ng \

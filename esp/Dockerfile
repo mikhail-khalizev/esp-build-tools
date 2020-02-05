@@ -65,6 +65,7 @@ RUN    apt-get update \
     && apt-get install -y \
             gcc git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
+            p7zip-full \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-xtensa-gcc /root/esp/xtensa-esp32-elf/ /root/esp/xtensa-esp32-elf/
@@ -121,6 +122,17 @@ RUN    set +x \
     `#                                                                                   ` \
     `#   && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk                  ` \
     `#   && mv ~/project.mk $IDF_PATH/make/                                              ` \
+    \
+    \
+    `# Add boost library.` \
+    && cd $IDF_PATH/components \
+    && wget https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.7z \
+    && 7z x boost_*.7z \
+    && mkdir -p boost/include \
+    && mv boost_*/boost boost/include/ \
+    && mv boost_*/*LICENSE* boost/ \
+    && touch boost/component.mk \
+    && rm -rf boost_* \
     \
     \
     `# Check that example project builds successfully.` \

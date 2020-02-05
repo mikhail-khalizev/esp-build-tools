@@ -27,6 +27,7 @@ RUN	   wget https://github.com/crosstool-ng/crosstool-ng/archive/crosstool-ng-$C
     && mv crosstool-ng* crosstool-ng \
     \
 	&& cd crosstool-ng \
+    && ./bootstrap \
 	&& ./configure --enable-local \
     && make -j8 \
     \

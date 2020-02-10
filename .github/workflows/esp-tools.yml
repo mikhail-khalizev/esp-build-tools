@@ -10,7 +10,6 @@ on:
 env:
   TAG_VERSION: "3.3"
   IDF_BRANCH: "release/v3.3"
-  ARDUINO_BRANCH: "idf-release/v3.3"
   TOOLCHAIN_BRANCH: "xtensa-1.22.x"
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_ORG }}/${{ github.workflow }}"
@@ -41,7 +40,6 @@ jobs:
             --target tools-xtensa-gcc
             --tag local-tools-gcc
             --build-arg IDF_BRANCH
-            --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
             -f Dockerfile .
         "
@@ -53,7 +51,6 @@ jobs:
             --target tools
             --tag local-tools
             --build-arg IDF_BRANCH
-            --build-arg ARDUINO_BRANCH
             --build-arg TOOLCHAIN_BRANCH
             --cache-from local-tools-gcc
             -f Dockerfile .

@@ -55,7 +55,7 @@ RUN    mkdir ~/esp \
 
 
 
-# --- Install esp-idf, arduino-esp32. ---
+# --- Install esp-idf. ---
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#get-esp-idf
 
@@ -72,7 +72,6 @@ COPY --from=tools-xtensa-gcc /root/esp/xtensa-esp32-elf/ /root/esp/xtensa-esp32-
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
 ARG IDF_BRANCH=release/v3.3
-ARG ARDUINO_BRANCH=idf-release/v3.3
 
 ENV IDF_PATH ${HOME}/esp/esp-idf
 ENV PATH="${HOME}/esp/esp-idf/components/esptool_py/esptool:${HOME}/esp/esp-idf/components/espcoredump:${HOME}/esp/esp-idf/components/partition_table:${HOME}/esp/esp-idf/tools:${PATH}"
@@ -89,10 +88,6 @@ RUN    cd ~/esp \
     && cd ~ \
     && rm -rf ~/esp/esp-idf
 
-# Disable mdf.
-# ENV MDF_PATH ${HOME}/esp/esp-mdf
-# COPY project.mk .
-
 RUN    set +x \
     && cd ~/esp \
     && git clone -b $IDF_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/esp-idf.git \
@@ -104,25 +99,6 @@ RUN    set +x \
     && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/make/project.mk \
     && sed -i 's:static bool abort_called;:bool abort_called;:g' $IDF_PATH/components/esp32/panic.c `# Used in 'xt_exception_handler_isr' method.` \
     && sed -i 's:esp_err_t esp_event_send(system_event_t:esp_err_t __attribute__((weak)) esp_event_send(system_event_t:g' $IDF_PATH/components/esp32/event_loop.c `# To override esp_event_send method.` \
-    \
-    && cd $IDF_PATH/components \
-    && git clone -b $ARDUINO_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/arduino-esp32 arduino \
-    && cd arduino \
-    && git describe --always --tags --dirty > version.txt \
-    \
-    `# Fix 'iothubtransport_mqtt_common.c' compilation error.` \
-    && printf "\nCFLAGS += -Wno-maybe-uninitialized\n" >> $IDF_PATH/components/arduino/component.mk \
-    `# && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/components/arduino/component.mk` \
-    \
-    \
-    `### Disable mdf.                                                                    ` \
-    `#   && cd ~/esp                                                                     ` \
-    `#   && git clone --single-branch --depth 1 https://github.com/espressif/esp-mdf.git ` \
-    `#   && cd $MDF_PATH                                                                 ` \
-    `#   && git describe --always --tags --dirty > version.txt                           ` \
-    `#                                                                                   ` \
-    `#   && mv $IDF_PATH/make/project.mk $IDF_PATH/make/project-orig.mk                  ` \
-    `#   && mv ~/project.mk $IDF_PATH/make/                                              ` \
     \
     \
     `# Add boost library.` \
@@ -139,7 +115,6 @@ RUN    set +x \
     `# Check that example project builds successfully.` \
     && cd ~/esp \
     && cd $IDF_PATH/examples/get-started/hello_world \
-    && cp $IDF_PATH/components/arduino/tools/sdk/sdkconfig . \
     && make -j8 defconfig \
     && make -j8 \
     \
@@ -148,6 +123,5 @@ RUN    set +x \
     && cd ~/esp \
     && find \( -name examples -o -name doc -o -name docs -o -name testdata -o -name '.git*' -o -name '.*.yml' \) -exec rm -rf {} + \
     && cd $IDF_PATH/components \
-    && rm -rf arduino/tools \
     && find \( -name tests \) -exec rm -rf {} +
 

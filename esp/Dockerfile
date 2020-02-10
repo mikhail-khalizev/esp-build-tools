@@ -103,6 +103,7 @@ RUN    set +x \
     && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/make/project.mk \
     && sed -i 's:static bool abort_called;:bool abort_called;:g' $IDF_PATH/components/esp32/panic.c `# Used in 'xt_exception_handler_isr' method.` \
+    && sed -i 's:esp_err_t esp_event_send(system_event_t:esp_err_t __attribute__((weak)) esp_event_send(system_event_t:g' $IDF_PATH/components/esp32/event_loop.c `# To override esp_event_send method.` \
     \
     && cd $IDF_PATH/components \
     && git clone -b $ARDUINO_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/arduino-esp32 arduino \

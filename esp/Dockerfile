@@ -109,8 +109,10 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && wget https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.7z \
     && 7z x boost_*.7z \
+    \
     && mkdir -p boost/include/sys boost/src \
     && mv boost_*/boost boost/include/ \
+    && rm -rf boost/include/boost/asio* `# esp-idf already have asio` \
     && mv boost_*/*LICENSE* boost/ \
     && mv boost_*/libs/filesystem boost/src/ \
     && mv ~/my-docker/statvfs.h boost/include/sys/ \

@@ -22,7 +22,7 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc++-v3/libsupc++/exception.h /home/micky/source/espressif/libstdc++-v3/libsupc++/exception.h
 --- a/libstdc++-v3/libsupc++/exception	2019-09-28 23:24:02.000000000 +0300
 +++ b/libstdc++-v3/libsupc++/exception	2019-09-29 01:53:37.150502500 +0300
-@@ -59,13 +59,40 @@
+@@ -59,13 +59,72 @@
     */
    class exception
    {
@@ -41,10 +41,12 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 +      if (create_extra != ((void*)0))
 +        create_extra(this, &_extra);
 +    }
++
 +    exception(const exception& ex) _GLIBCXX_USE_NOEXCEPT {
 +      if (copy_extra != ((void*)0) && ex._extra != ((void*)0))
 +        copy_extra(this, &_extra, &ex, ex._extra);
 +    }
++
 +#if 201103L <= __cplusplus
 +    exception(exception&& ex) _GLIBCXX_USE_NOEXCEPT {
 +      if (move_extra != ((void*)0) && ex._extra != ((void*)0))
@@ -54,7 +56,37 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 +      }
 +    }
 +#endif
++
      virtual ~exception() _GLIBCXX_USE_NOEXCEPT;
++
++    exception& operator=(const exception& ex) _GLIBCXX_USE_NOEXCEPT
++    {
++      if (delete_extra != ((void*)0) && _extra != ((void*)0)) 
++      {
++        delete_extra(this, _extra);
++        _extra = ((void*)0);
++      }
++      if (copy_extra != ((void*)0) && ex._extra != ((void*)0))
++        copy_extra(this, &_extra, &ex, ex._extra);
++      return *this;
++    }
++
++#if 201103L <= __cplusplus
++    exception& operator=(exception&& ex) _GLIBCXX_USE_NOEXCEPT
++    {
++      if (delete_extra != ((void*)0) && _extra != ((void*)0)) 
++      {
++        delete_extra(this, _extra);
++        _extra = ((void*)0);
++      }
++      if (move_extra != ((void*)0) && ex._extra != ((void*)0))
++      {
++        move_extra(this, &_extra, &ex, ex._extra);
++        ex._extra = ((void*)0);
++      }
++      return *this;
++    }
++#endif
  
      /** Returns a C-style character string describing the general cause
       *  of the current error.  */
@@ -64,3 +96,27 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
    };
  
  } // namespace std
+diff -Nuar cow-stdexcept.orig.cc cow-stdexcept.new.cc
+--- a/libstdc++-v3/src/c++11/cow-stdexcept.cc	2019-09-28 23:24:02.000000000 +0300
++++ b/libstdc++-v3/src/c++11/cow-stdexcept.cc	2019-09-29 01:53:37.150502500 +0300
+@@ -41,17 +41,17 @@
+   // Copy constructors and assignment operators defined using COW std::string
+
+   logic_error::logic_error(const logic_error& e) noexcept
+-  : _M_msg(e._M_msg) { }
++  : exception(e), _M_msg(e._M_msg) { }
+
+   logic_error& logic_error::operator=(const logic_error& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
+
+   runtime_error::runtime_error(const runtime_error& e) noexcept
+-  : _M_msg(e._M_msg) { }
++  : exception(e), _M_msg(e._M_msg) { }
+
+   runtime_error&
+   runtime_error::operator=(const runtime_error& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
+
+   // New C++11 constructors:

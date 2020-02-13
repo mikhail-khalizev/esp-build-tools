@@ -88,6 +88,9 @@ RUN    cd ~/esp \
     && cd ~ \
     && rm -rf ~/esp/esp-idf
 
+
+COPY statvfs.h my-docker/
+
 RUN    set +x \
     && cd ~/esp \
     && git clone -b $IDF_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/esp-idf.git \
@@ -106,16 +109,20 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && wget https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.7z \
     && 7z x boost_*.7z \
-    && mkdir -p boost/include \
+    && mkdir -p boost/include/sys boost/src \
     && mv boost_*/boost boost/include/ \
     && mv boost_*/*LICENSE* boost/ \
-    && touch boost/component.mk \
+    && mv boost_*/libs/filesystem boost/src/ \
+    && mv ~/my-docker/statvfs.h boost/include/sys/ \
+    && echo "COMPONENT_SRCDIRS := src/filesystem/src" > boost/component.mk \
     && rm -rf boost_* \
     \
     \
     `# Check that example project builds successfully.` \
     && cd ~/esp \
     && cd $IDF_PATH/examples/get-started/hello_world \
+    && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
+    && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
     && make -j8 defconfig \
     && make -j8 \
     \
@@ -124,5 +131,6 @@ RUN    set +x \
     && cd ~/esp \
     && find \( -name examples -o -name doc -o -name docs -o -name testdata -o -name '.git*' -o -name '.*.yml' \) -exec rm -rf {} + \
     && cd $IDF_PATH/components \
-    && find \( -name tests \) -exec rm -rf {} +
+    && find \( -name tests \) -exec rm -rf {} + \
+    && rm -rf ~/my-docker
 

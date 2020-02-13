@@ -103,6 +103,7 @@ RUN    set +x \
     && sed -i 's:static bool abort_called;:bool abort_called;:g' $IDF_PATH/components/esp32/panic.c `# Used in 'xt_exception_handler_isr' method.` \
     && sed -i 's:esp_err_t esp_event_send(system_event_t:esp_err_t __attribute__((weak)) esp_event_send(system_event_t:g' $IDF_PATH/components/esp32/event_loop.c `# To override esp_event_send method.` \
     && sed -i 's:tls->conn_state = ESP_TLS_HANDSHAKE;:tls->conn_state = ESP_TLS_HANDSHAKE; return 0;:g' $IDF_PATH/components/esp-tls/esp_tls.c `# To allow additional configure mbedtls before start handshake.` \
+    && sed -i 's:# define ASIO_NO_TYPEID:// # define ASIO_NO_TYPEID:g' $IDF_PATH/components/asio/port/include/esp_asio_config.h \
     \
     \
     `# Add boost library.` \

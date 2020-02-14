@@ -54,7 +54,6 @@ RUN    mkdir ~/esp \
     && xtensa-esp32-elf-gcc -v
 
 
-
 # --- Install esp-idf. ---
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#get-esp-idf
@@ -65,7 +64,6 @@ RUN    apt-get update \
     && apt-get install -y \
             gcc git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
-            p7zip-full \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools-xtensa-gcc /root/esp/xtensa-esp32-elf/ /root/esp/xtensa-esp32-elf/
@@ -88,9 +86,7 @@ RUN    cd ~/esp \
     && cd ~ \
     && rm -rf ~/esp/esp-idf
 
-
-COPY statvfs.h my-docker/
-
+# Install esp-idf.
 RUN    set +x \
     && cd ~/esp \
     && git clone -b $IDF_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/esp-idf.git \
@@ -100,25 +96,7 @@ RUN    set +x \
     && printf "\nSUPPORTED_TOOLCHAIN_COMMIT_DESC = `xtensa-esp32-elf-gcc --version | sed -E -n 's|.*\(crosstool-NG (.*)\).*|\1|gp'`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/make/project.mk \
-    && sed -i 's:static bool abort_called;:bool abort_called;:g' $IDF_PATH/components/esp32/panic.c `# Used in 'xt_exception_handler_isr' method.` \
-    && sed -i 's:esp_err_t esp_event_send(system_event_t:esp_err_t __attribute__((weak)) esp_event_send(system_event_t:g' $IDF_PATH/components/esp32/event_loop.c `# To override esp_event_send method.` \
-    && sed -i 's:tls->conn_state = ESP_TLS_HANDSHAKE;:tls->conn_state = ESP_TLS_HANDSHAKE; return 0;:g' $IDF_PATH/components/esp-tls/esp_tls.c `# To allow additional configure mbedtls before start handshake.` \
     && sed -i 's:# define ASIO_NO_TYPEID:// # define ASIO_NO_TYPEID:g' $IDF_PATH/components/asio/port/include/esp_asio_config.h \
-    \
-    \
-    `# Add boost library.` \
-    && cd $IDF_PATH/components \
-    && wget https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.7z \
-    && 7z x boost_*.7z \
-    \
-    && mkdir -p boost/include/sys boost/src \
-    && mv boost_*/boost boost/include/ \
-    && rm -rf boost/include/boost/asio* `# esp-idf already have asio` \
-    && mv boost_*/*LICENSE* boost/ \
-    && mv boost_*/libs/filesystem boost/src/ \
-    && mv ~/my-docker/statvfs.h boost/include/sys/ \
-    && echo "COMPONENT_SRCDIRS := src/filesystem/src" > boost/component.mk \
-    && rm -rf boost_* \
     \
     \
     `# Check that example project builds successfully.` \
@@ -136,4 +114,3 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && find \( -name tests \) -exec rm -rf {} + \
     && rm -rf ~/my-docker
-

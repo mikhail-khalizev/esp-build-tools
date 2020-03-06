@@ -17,10 +17,10 @@ RUN    apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="${HOME}/avr/gcc/bin:${PATH}"
-    
+
 # Link from http://crosstool-ng.github.io/download/
 ARG CROSSTOOL_NG_VERSION=1.24.0
-    
+
 RUN	   wget https://github.com/crosstool-ng/crosstool-ng/archive/crosstool-ng-$CROSSTOOL_NG_VERSION.tar.gz \
 	&& tar xf crosstool-ng-*.tar* \
     && rm crosstool-ng-*.tar* \
@@ -49,4 +49,3 @@ FROM base as tools
 
 COPY --from=tools-gcc /root/avr/gcc/ /root/avr/gcc/
 ENV PATH="${HOME}/avr/gcc/bin:${PATH}"
-

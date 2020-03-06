@@ -89,9 +89,10 @@ RUN    cd ~/esp \
 # Install esp-idf.
 RUN    set +x \
     && cd ~/esp \
-    && git clone -b $IDF_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/esp-idf.git \
+    && git clone -b $IDF_BRANCH --single-branch --depth 1000 --recursive https://github.com/espressif/esp-idf.git \
     && cd esp-idf \
-    && git describe --always --tags --dirty > version.txt \
+    && git describe --always --tags > version.txt \
+    && git describe --always --tags --abbrev=0 > tag.txt \
     \
     && printf "\nSUPPORTED_TOOLCHAIN_COMMIT_DESC = `xtensa-esp32-elf-gcc --version | sed -E -n 's|.*\(crosstool-NG (.*)\).*|\1|gp'`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \

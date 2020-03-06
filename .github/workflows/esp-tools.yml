@@ -8,7 +8,6 @@ on:
       - cron: '0 10 * * WED'
 
 env:
-  TAG_VERSION: "3.3"
   IDF_BRANCH: "release/v3.3"
   TOOLCHAIN_BRANCH: "xtensa-1.22.x"
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -59,14 +58,17 @@ jobs:
     - name: Publish to hub.docker.com
       if: github.ref == 'refs/heads/master'
       run: |
-        DAY_STAMP=`date +%Y-%m-%d`
+        docker run --rm -v $PWD:/root/share  local-tools  bash -c "cp -rf \$IDF_PATH/version.txt \$IDF_PATH/tag.txt /root/share/"
 
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
+        TAG=`cat tag.txt`
+        VERSION=`cat version.txt`
+
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
         docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
 
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION-$DAY_STAMP
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG_VERSION
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
         docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest

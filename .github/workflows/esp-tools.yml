@@ -55,7 +55,7 @@ jobs:
             -f Dockerfile .
         "
 
-    - name: Publish to hub.docker.com
+    - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
         docker run --rm -v $PWD:/root/share  local-tools  bash -c "cp -rf \$IDF_PATH/version.txt \$IDF_PATH/tag.txt /root/share/"

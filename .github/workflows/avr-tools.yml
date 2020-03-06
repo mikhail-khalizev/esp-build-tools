@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - 'avr/**'
-#  schedule:
-#      - cron:  '0 12 * * WED'
+  schedule:
+      - cron:  '0 12 7 * *'
 
 env:
   CROSSTOOL_NG_VERSION: "1.24.0"
@@ -40,15 +40,15 @@ jobs:
             -f Dockerfile .
         "
 
-    - name: Publish to hub.docker.com
+    - name: Publish
       if: github.ref == 'refs/heads/master'
       run: |
-        DAY_STAMP=`date +%Y-%m-%d`
+        VERSION=`docker run --rm  local-tools  bash -c "avr-gcc -v 2>&1 | tail -n1 | sed -e 's:^[^1234567890]*::' -e 's:[^1234567890]*$::'"`
 
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$DAY_STAMP
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
         docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
         docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
 
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$DAY_STAMP
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
         docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest

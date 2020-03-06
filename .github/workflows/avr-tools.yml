@@ -4,8 +4,8 @@ on:
   push:
     paths:
       - 'avr/**'
-  schedule:
-      - cron:  '0 12 * * WED'
+#  schedule:
+#      - cron:  '0 12 * * WED'
 
 env:
   CROSSTOOL_NG_VERSION: "1.24.0"

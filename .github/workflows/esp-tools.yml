@@ -8,8 +8,8 @@ on:
       - cron: '0 10 * * WED'
 
 env:
-  IDF_BRANCH: "release/v3.3"
-  TOOLCHAIN_BRANCH: "xtensa-1.22.x"
+  IDF_BRANCH: "release/v4.0"
+  TOOLCHAIN_BRANCH: "esp-2019r2"
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_ORG }}/${{ github.workflow }}"
   GITHUB_DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}

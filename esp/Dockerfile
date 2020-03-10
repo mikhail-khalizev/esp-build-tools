@@ -20,18 +20,15 @@ RUN    apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/linux-setup-scratch.html#compile-the-toolchain-from-source
-ARG TOOLCHAIN_BRANCH=xtensa-1.22.x
+ARG TOOLCHAIN_BRANCH=esp-2019r2
 
-COPY *.patch  my-docker/
-
-# NOTE. Когда esp-idf официально перейдет на GCC 8.2 стоит изменить команду копирования patch на 'cp ~/my-docker/*.patch `./get-gcc-patch-dir.sh`'.
-# COPY get-gcc-patch-dir.sh  my-docker/
+COPY get-gcc-patch-dir.sh *.patch  my-docker/
 
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
 RUN    mkdir ~/esp \
     && cd ~/esp \
-    && git clone -b $TOOLCHAIN_BRANCH --single-branch --depth 1 https://github.com/espressif/crosstool-NG.git \
+    && git clone -b $TOOLCHAIN_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/crosstool-NG.git \
     \
     && cd crosstool-NG \
     && ./bootstrap \
@@ -39,11 +36,10 @@ RUN    mkdir ~/esp \
     && make -j8 \
     \
     && ./ct-ng xtensa-esp32-elf \
-    && sed -i 's: *-fno-rtti *::g' ./.config \
     && echo "CT_ALLOW_BUILD_AS_ROOT=y" >> .config \
     && echo "CT_ALLOW_BUILD_AS_ROOT_SURE=y" >> .config \
     && echo "CT_PREFIX_DIR=${HOME}/esp/xtensa-esp32-elf" >> .config \
-    && cp ~/my-docker/*.patch ./patches/gcc/5.2.0/ \
+    && cp ~/my-docker/*.patch `~/my-docker/get-gcc-patch-dir.sh` \
     \
     && mkdir ~/src \
     && ./ct-ng build || (tail -n 100 build.log; exit 1) \
@@ -69,7 +65,7 @@ RUN    apt-get update \
 COPY --from=tools-xtensa-gcc /root/esp/xtensa-esp32-elf/ /root/esp/xtensa-esp32-elf/
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
-ARG IDF_BRANCH=release/v3.3
+ARG IDF_BRANCH=release/v4.0
 
 ENV IDF_PATH ${HOME}/esp/esp-idf
 ENV PATH="${HOME}/esp/esp-idf/components/esptool_py/esptool:${HOME}/esp/esp-idf/components/espcoredump:${HOME}/esp/esp-idf/components/partition_table:${HOME}/esp/esp-idf/tools:${PATH}"
@@ -96,8 +92,6 @@ RUN    set +x \
     \
     && printf "\nSUPPORTED_TOOLCHAIN_COMMIT_DESC = `xtensa-esp32-elf-gcc --version | sed -E -n 's|.*\(crosstool-NG (.*)\).*|\1|gp'`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
-    && sed -i 's: *-fno-rtti *: :g' $IDF_PATH/make/project.mk \
-    && sed -i 's:# define ASIO_NO_TYPEID:// # define ASIO_NO_TYPEID:g' $IDF_PATH/components/asio/port/include/esp_asio_config.h \
     \
     \
     `# Check that example project builds successfully.` \

@@ -26,7 +26,8 @@ COPY get-gcc-patch-dir.sh *.patch  my-docker/
 
 ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
-RUN    mkdir ~/esp \
+RUN    set -euo pipefail \
+    && mkdir ~/esp \
     && cd ~/esp \
     && git clone -b $TOOLCHAIN_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/crosstool-NG.git \
     \
@@ -89,9 +90,6 @@ RUN    set +x \
     && cd esp-idf \
     && git describe --always --tags > version.txt \
     && git describe --always --tags --abbrev=0 > tag.txt \
-    \
-    && printf "\nSUPPORTED_TOOLCHAIN_COMMIT_DESC = `xtensa-esp32-elf-gcc --version | sed -E -n 's|.*\(crosstool-NG (.*)\).*|\1|gp'`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
-    && printf  "SUPPORTED_TOOLCHAIN_GCC_VERSIONS = `xtensa-esp32-elf-gcc -dumpversion`\n" >> $IDF_PATH/tools/toolchain_versions.mk \
     \
     \
     `# Check that example project builds successfully.` \

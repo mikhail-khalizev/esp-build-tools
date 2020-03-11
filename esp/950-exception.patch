@@ -97,3 +97,27 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
    };
 
  } // namespace std
+diff -Nuar cow-stdexcept.orig.cc cow-stdexcept.new.cc
+--- a/libstdc++-v3/src/c++11/cow-stdexcept.cc    2019-09-28 23:24:02.000000000 +0300
++++ b/libstdc++-v3/src/c++11/cow-stdexcept.cc    2019-09-29 01:53:37.150502500 +0300
+@@ -41,17 +41,17 @@
+   // Copy constructors and assignment operators defined using COW std::string
+
+   logic_error::logic_error(const logic_error& e) noexcept
+-  : _M_msg(e._M_msg) { }
++  : exception(e), _M_msg(e._M_msg) { }
+
+   logic_error& logic_error::operator=(const logic_error& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
+
+   runtime_error::runtime_error(const runtime_error& e) noexcept
+-  : _M_msg(e._M_msg) { }
++  : exception(e), _M_msg(e._M_msg) { }
+
+   runtime_error&
+   runtime_error::operator=(const runtime_error& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
+
+   // New C++11 constructors:

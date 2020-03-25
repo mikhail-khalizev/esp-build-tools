@@ -68,28 +68,29 @@ ENV PATH="${HOME}/esp/xtensa-esp32-elf/bin:${PATH}"
 
 ARG IDF_BRANCH=release/v4.0
 
-ENV IDF_PATH ${HOME}/esp/esp-idf
-ENV PATH="${HOME}/esp/esp-idf/components/esptool_py/esptool:${HOME}/esp/esp-idf/components/espcoredump:${HOME}/esp/esp-idf/components/partition_table:${HOME}/esp/esp-idf/tools:${PATH}"
+ENV IDF_PATH /esp-idf
+ENV PATH="${IDF_PATH}/components/esptool_py/esptool:${IDF_PATH}/components/espcoredump:${IDF_PATH}/components/partition_table:${IDF_PATH}/tools:${PATH}"
 
 # Install python requirements in separate docker image slot.
-RUN    cd ~/esp \
+RUN    cd / \
     && git clone -b $IDF_BRANCH --single-branch --depth 1 https://github.com/espressif/esp-idf.git \
-    && cd esp-idf \
+    && cd $IDF_PATH \
     \
     `# Add modules from '$IDF_PATH/tools/tiny-test-fw/requirements.txt'.` \
     && printf "pyyaml\njunit_xml\nnetifaces\nmatplotlib\n" >> $IDF_PATH/requirements.txt \
     && python -m pip install --user -r $IDF_PATH/requirements.txt \
     \
     && cd ~ \
-    && rm -rf ~/esp/esp-idf
+    && rm -rf $IDF_PATH
 
 # Install esp-idf.
 RUN    set +x \
-    && cd ~/esp \
+    && cd / \
     && git clone -b $IDF_BRANCH --single-branch --depth 1000 --recursive https://github.com/espressif/esp-idf.git \
-    && cd esp-idf \
+    && cd $IDF_PATH \
     && git describe --always --tags > version.txt \
     && git describe --always --tags --abbrev=0 > tag.txt \
+    && ln -s $IDF_PATH ~/esp/esp-idf \
     \
     \
     `# Check that example project builds successfully.` \

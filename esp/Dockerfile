@@ -1,6 +1,6 @@
 # --- Initialize. ---
 
-FROM ubuntu as base
+FROM ubuntu:bionic as base
 
 ENV HOME=/root
 WORKDIR ${HOME}
@@ -11,7 +11,8 @@ SHELL ["/bin/bash", "-c"]
 
 FROM base as tools-xtensa-gcc
 
-RUN    apt-get update \
+RUN    export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
     && apt-get install -y \
             build-essential gawk bison texinfo autoconf automake unzip help2man flex file libtool man libtool-bin libncurses5 libncurses5-dev \
             git wget libncurses-dev flex bison python-click python-pyelftools cmake ninja-build ccache \
@@ -57,7 +58,8 @@ RUN    set -euo pipefail \
 
 FROM base as tools
 
-RUN    apt-get update \
+RUN    export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
     && apt-get install -y \
             gcc git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \

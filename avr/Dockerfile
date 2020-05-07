@@ -1,6 +1,6 @@
 # --- Initialize. ---
 
-FROM ubuntu as base
+FROM ubuntu:bionic as base
 
 ENV HOME=/root
 WORKDIR ${HOME}

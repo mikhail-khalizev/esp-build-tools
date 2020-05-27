@@ -90,7 +90,6 @@ RUN    set +x \
     && cd $IDF_PATH \
     && git describe --always --tags > version.txt \
     && git describe --always --tags --abbrev=0 > tag.txt \
-    && ln -s $IDF_PATH ~/esp/esp-idf \
     \
     \
     `# Check that example project builds successfully.` \
@@ -108,4 +107,3 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && find \( -name tests \) -exec rm -rf {} + \
     && rm -rf ~/my-docker
-

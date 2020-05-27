@@ -3,7 +3,7 @@ name: esp-tools
 on:
   push:
     paths:
-      - 'esp/**'
+      - 'esp/tools/**'
   schedule:
       - cron: '0 10 * * WED'
 
@@ -33,7 +33,7 @@ jobs:
 
     - name: Build xtensa-gcc
       run: "
-           cd esp
+           cd esp/tools
         && docker build
             --pull
             --target tools-xtensa-gcc
@@ -45,7 +45,7 @@ jobs:
 
     - name: Build esp
       run: "
-           cd esp
+           cd esp/tools
         && docker build
             --target tools
             --tag local-tools

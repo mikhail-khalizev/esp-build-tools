@@ -40,6 +40,11 @@ RUN    set -euo pipefail \
     && echo "CT_ALLOW_BUILD_AS_ROOT=y" >> .config \
     && echo "CT_ALLOW_BUILD_AS_ROOT_SURE=y" >> .config \
     && echo "CT_PREFIX_DIR=/xtensa-esp32-elf" >> .config \
+    \
+    && echo Patch info \
+    && chmod u+x ~/my-docker/get-gcc-patch-dir.sh \
+    && ~/my-docker/get-gcc-patch-dir.sh \
+    && ls ~/my-docker/*.patch \
     && cp ~/my-docker/*.patch `~/my-docker/get-gcc-patch-dir.sh` \
     \
     && ./ct-ng build || (tail -n 100 build.log; exit 1) \

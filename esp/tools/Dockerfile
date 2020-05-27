@@ -93,7 +93,6 @@ RUN    set +x \
     \
     \
     `# Check that example project builds successfully.` \
-    && cd ~/esp \
     && cd $IDF_PATH/examples/get-started/hello_world \
     && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
     && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
@@ -102,7 +101,7 @@ RUN    set +x \
     \
     \
     `# Reduce size` \
-    && cd ~/esp \
+    && cd $IDF_PATH \
     && find \( -name examples -o -name doc -o -name docs -o -name testdata -o -name '.git*' -o -name '.*.yml' \) -exec rm -rf {} + \
     && cd $IDF_PATH/components \
     && find \( -name tests \) -exec rm -rf {} + \

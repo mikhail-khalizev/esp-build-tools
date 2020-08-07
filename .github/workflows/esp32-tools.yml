@@ -4,12 +4,13 @@ on:
   push:
     paths:
       - 'esp/**'
+      - '.github/workflows/esp32-tools.yml'
   schedule:
       - cron: '0 10 * * WED'
 
 env:
   IDF_BRANCH: "release/v4.0"
-  TOOLCHAIN_BRANCH: "esp-2019r2"
+  TOOLCHAIN_BRANCH: "esp-2020r2"
   COMPILER: xtensa-esp32-elf
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_ORG }}/esp-tools"

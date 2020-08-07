@@ -21,7 +21,8 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
     && rm -rf /var/lib/apt/lists/*
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/linux-setup-scratch.html#compile-the-toolchain-from-source
-ARG TOOLCHAIN_BRANCH=esp-2019r2
+#                 or from https://github.com/espressif/esp-idf/blob/release/v4.0/tools/tools.json
+ARG TOOLCHAIN_BRANCH=esp-2020r2
 ARG COMPILER=xtensa-esp32-elf
 
 COPY get-gcc-patch-dir.sh *.patch  my-docker/
@@ -69,13 +70,16 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/*
 
+ARG IDF_BRANCH=release/v4.0
+ARG COMPILER=xtensa-esp32-elf
+
 COPY --from=tools-xtensa-gcc /${COMPILER}/ /${COMPILER}/
 ENV PATH="/${COMPILER}/bin:${PATH}"
 
-ARG IDF_BRANCH=release/v4.0
-
 ENV IDF_PATH /esp-idf
 ENV PATH="${IDF_PATH}/components/esptool_py/esptool:${IDF_PATH}/components/espcoredump:${IDF_PATH}/components/partition_table:${IDF_PATH}/tools:${PATH}"
+
+RUN ${COMPILER}-gcc -v
 
 # Install python requirements in separate docker image slot.
 RUN    cd / \

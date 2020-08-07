@@ -12,7 +12,7 @@ env:
   TOOLCHAIN_BRANCH: "esp-2019r2"
   COMPILER: xtensa-esp32-elf
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-  DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_ORG }}/${{ github.workflow }}"
+  DOCKER_HUB_REGISTRY_REPOSITORY: "${{ secrets.DOCKER_HUB_ORG }}/esp-tools"
   GITHUB_DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
   GITHUB_DOCKER_REGISTRY: docker.pkg.github.com
   GITHUB_DOCKER_REGISTRY_REPOSITORY: "docker.pkg.github.com/${{ github.repository }}/${{ github.workflow }}"

@@ -102,7 +102,7 @@ RUN    set +x \
     && cd $IDF_PATH/examples/get-started/hello_world \
     && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
     && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
-    && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then echo "CONFIG_IDF_TARGET=esp32s2" >> sdkconfig ; fi
+    && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then echo "CONFIG_IDF_TARGET=esp32s2" >> sdkconfig ; fi \
     && make -j8 defconfig \
     && make -j8 \
     \

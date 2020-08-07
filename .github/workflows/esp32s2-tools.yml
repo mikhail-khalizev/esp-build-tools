@@ -1,9 +1,9 @@
-name: esp-tools
+name: esp32s2-tools
 
 on:
   push:
     paths:
-      - 'esp/tools/**'
+      - 'esp/**'
   schedule:
       - cron: '0 12 * * WED'
 

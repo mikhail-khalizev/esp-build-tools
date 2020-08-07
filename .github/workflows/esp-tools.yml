@@ -3,7 +3,7 @@ name: esp-tools
 on:
   push:
     paths:
-      - 'esp/tools/**'
+      - 'esp/**'
   schedule:
       - cron: '0 10 * * WED'
 

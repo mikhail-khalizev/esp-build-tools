@@ -5,7 +5,7 @@ on:
     paths:
       - 'esp/tools/**'
   schedule:
-      - cron: '0 10 * * WED'
+      - cron: '0 12 * * WED'
 
 env:
   IDF_BRANCH: "release/v4.0"
@@ -15,7 +15,7 @@ env:
   GITHUB_DOCKER_USERNAME: ${{ secrets.GITHUB_DOCKER_USERNAME }}
   GITHUB_DOCKER_REGISTRY: docker.pkg.github.com
   GITHUB_DOCKER_REGISTRY_REPOSITORY: "docker.pkg.github.com/${{ github.repository }}/${{ github.workflow }}"
-  COMPILER: xtensa-esp32-elf
+  COMPILER: xtensa-esp32s2-elf
 
 jobs:
 

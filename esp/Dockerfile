@@ -22,11 +22,12 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
 
 # git branch version from https://docs.espressif.com/projects/esp-idf/en/stable/get-started/linux-setup-scratch.html#compile-the-toolchain-from-source
 ARG TOOLCHAIN_BRANCH=esp-2019r2
+ARG COMPILER=xtensa-esp32-elf
 
 COPY get-gcc-patch-dir.sh *.patch  my-docker/
 COPY pkg/* ${HOME}/src/
 
-ENV PATH="/xtensa-esp32-elf/bin:${PATH}"
+ENV PATH="/${COMPILER}/bin:${PATH}"
 
 RUN    set -euo pipefail \
     && git clone -b $TOOLCHAIN_BRANCH --single-branch --depth 1 --recursive https://github.com/espressif/crosstool-NG.git /crosstool-NG \
@@ -36,10 +37,10 @@ RUN    set -euo pipefail \
     && make -j8 \
     \
     && cd /crosstool-NG \
-    && ./ct-ng xtensa-esp32-elf \
+    && ./ct-ng ${COMPILER} \
     && echo "CT_ALLOW_BUILD_AS_ROOT=y" >> .config \
     && echo "CT_ALLOW_BUILD_AS_ROOT_SURE=y" >> .config \
-    && echo "CT_PREFIX_DIR=/xtensa-esp32-elf" >> .config \
+    && echo "CT_PREFIX_DIR=/${COMPILER}" >> .config \
     \
     && echo Patch info \
     && chmod u+x ~/my-docker/get-gcc-patch-dir.sh \
@@ -50,9 +51,9 @@ RUN    set -euo pipefail \
     && ./ct-ng build || (tail -n 100 build.log; exit 1) \
     \
     && cd ~ \
-    && rm -rf ~/src ~/my-docker /crosstool-NG /xtensa-esp32-elf/build.log.bz2 \
+    && rm -rf ~/src ~/my-docker /crosstool-NG /${COMPILER}/build.log.bz2 \
     \
-    && xtensa-esp32-elf-gcc -v
+    && ${COMPILER}-gcc -v
 
 
 # --- Install esp-idf. ---
@@ -68,8 +69,8 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tools-xtensa-gcc /xtensa-esp32-elf/ /xtensa-esp32-elf/
-ENV PATH="/xtensa-esp32-elf/bin:${PATH}"
+COPY --from=tools-xtensa-gcc /${COMPILER}/ /${COMPILER}/
+ENV PATH="/${COMPILER}/bin:${PATH}"
 
 ARG IDF_BRANCH=release/v4.0
 

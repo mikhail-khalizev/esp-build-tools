@@ -66,7 +66,7 @@ FROM base as tools
 RUN    export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y \
-            gcc git wget make libncurses-dev flex bison gperf \
+            cmake gcc git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/*
 
@@ -89,6 +89,9 @@ RUN    cd / \
     `# Add modules from '$IDF_PATH/tools/tiny-test-fw/requirements.txt'.` \
     && printf "pyyaml\njunit_xml\nnetifaces\nmatplotlib\n" >> $IDF_PATH/requirements.txt \
     && python -m pip install --user -r $IDF_PATH/requirements.txt \
+    && python -m pip install --user -r $IDF_PATH/requirements.txt `# This is required, otherwise 'check_python_dependencies' fails.` \
+    \
+    && $IDF_PATH/tools/check_python_dependencies.py \
     \
     && cd ~ \
     && rm -rf $IDF_PATH
@@ -104,11 +107,10 @@ RUN    set +x \
     \
     `# Check that example project builds successfully.` \
     && cd $IDF_PATH/examples/get-started/hello_world \
+    && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then idf.py set-target esp32s2 ; fi \
     && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
     && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
-    && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then echo "CONFIG_IDF_TARGET=esp32s2" >> sdkconfig ; fi \
-    && make -j8 defconfig \
-    && make -j8 \
+    && idf.py build \
     \
     \
     `# Reduce size` \

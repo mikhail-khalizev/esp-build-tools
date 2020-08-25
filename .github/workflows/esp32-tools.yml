@@ -9,7 +9,7 @@ on:
       - cron: '0 10 * * WED'
 
 env:
-  IDF_BRANCH: "release/v4.0"
+  IDF_BRANCH: "release/v4.1"
   TOOLCHAIN_BRANCH: "esp-2020r2"
   COMPILER: xtensa-esp32-elf
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}

@@ -70,7 +70,7 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/*
 
-ARG IDF_BRANCH=release/v4.0
+ARG IDF_BRANCH=release/v4.1
 ARG COMPILER=xtensa-esp32-elf
 
 COPY --from=tools-xtensa-gcc /${COMPILER}/ /${COMPILER}/

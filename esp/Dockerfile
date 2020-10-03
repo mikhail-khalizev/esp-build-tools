@@ -66,7 +66,7 @@ FROM base as tools
 RUN    export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y \
-            cmake gcc git wget make libncurses-dev flex bison gperf \
+            cmake gcc-8 g++-8 git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/*
 
@@ -79,7 +79,8 @@ ENV PATH="/${COMPILER}/bin:${PATH}"
 ENV IDF_PATH /esp-idf
 ENV PATH="${IDF_PATH}/components/esptool_py/esptool:${IDF_PATH}/components/espcoredump:${IDF_PATH}/components/partition_table:${IDF_PATH}/tools:${PATH}"
 
-RUN ${COMPILER}-gcc -v
+RUN    gcc -v \
+    ;  ${COMPILER}-gcc -v
 
 # Install python requirements in separate docker image slot.
 RUN    cd / \

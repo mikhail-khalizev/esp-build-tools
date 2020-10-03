@@ -68,7 +68,8 @@ RUN    export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y \
             cmake gcc-8 g++-8 git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 
 ARG IDF_BRANCH=release/v4.1
 ARG COMPILER=xtensa-esp32-elf

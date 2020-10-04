@@ -42,6 +42,10 @@ RUN    set -euo pipefail \
     && echo "CT_ALLOW_BUILD_AS_ROOT=y" >> .config \
     && echo "CT_ALLOW_BUILD_AS_ROOT_SURE=y" >> .config \
     && echo "CT_PREFIX_DIR=/${COMPILER}" >> .config \
+    && echo "CT_GCC_V_10_2_0=y" >> .config \
+    && echo "CT_GCC_VERSION=\"10.2.0\"" >> .config \
+    && echo "CT_GCC_DEVEL_URL=\"https://github.com/gcc-mirror/gcc.git\"" >> .config \
+    && echo "CT_GCC_DEVEL_BRANCH=\"releases/gcc-10.2.0\"" >> .config \
     \
     && echo Patch info \
     && chmod u+x ~/my-docker/get-gcc-patch-dir.sh \
@@ -64,12 +68,13 @@ RUN    set -euo pipefail \
 FROM base as tools
 
 RUN    export DEBIAN_FRONTEND=noninteractive \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test \
     && apt-get update \
     && apt-get install -y \
-            cmake gcc-8 g++-8 git wget make libncurses-dev flex bison gperf \
+            cmake g++-10 git wget make libncurses-dev flex bison gperf \
             python python-pip python-setuptools python-serial python-cryptography python-future python-pyparsing \
     && rm -rf /var/lib/apt/lists/* \
-    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 1000 --slave /usr/bin/g++ g++ /usr/bin/g++-10
 
 ARG IDF_BRANCH=release/v4.1
 ARG COMPILER=xtensa-esp32-elf
@@ -81,7 +86,7 @@ ENV IDF_PATH /esp-idf
 ENV PATH="${IDF_PATH}/components/esptool_py/esptool:${IDF_PATH}/components/espcoredump:${IDF_PATH}/components/partition_table:${IDF_PATH}/tools:${PATH}"
 
 RUN    gcc -v \
-    ;  ${COMPILER}-gcc -v
+    && ${COMPILER}-gcc -v
 
 # Install python requirements in separate docker image slot.
 RUN    cd / \

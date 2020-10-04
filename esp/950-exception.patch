@@ -22,7 +22,7 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc++-v3/libsupc++/exception.h /home/micky/source/espressif/libstdc++-v3/libsupc++/exception.h
 --- a/libstdc++-v3/libsupc++/exception.h	2019-09-28 23:24:02.000000000 +0300
 +++ b/libstdc++-v3/libsupc++/exception.h	2019-09-29 01:53:37.150502500 +0300
-@@ -59,14 +59,73 @@
+@@ -59,20 +59,73 @@
     */
    class exception
    {
@@ -30,7 +30,7 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 +    void* _extra = ((void*)0);
 +
    public:
--    exception() _GLIBCXX_USE_NOEXCEPT { }
+-    exception() _GLIBCXX_NOTHROW { }
 +
 +    static void (*create_extra)(exception* ex, void** extra_ptr);
 +    static void (*copy_extra)(exception* to_ex, void** to_extra_ptr, const exception* from_ex, const void* from_extra);
@@ -57,7 +57,7 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 +    }
 +#endif
 +
-     virtual ~exception() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT;
+     virtual ~exception() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
 +
 +    exception& operator=(const exception& ex) _GLIBCXX_USE_NOEXCEPT
 +    {
@@ -87,11 +87,17 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 +      return *this;
 +    }
 +#endif
+-#if __cplusplus >= 201103L
+-    exception(const exception&) = default;
+-    exception& operator=(const exception&) = default;
+-    exception(exception&&) = default;
+-    exception& operator=(exception&&) = default;
+-#endif
 
      /** Returns a C-style character string describing the general cause
       *  of the current error.  */
      virtual const char*
-     what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_USE_NOEXCEPT;
+     what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
 +
 +    const void* get_extra() const { return _extra; }
    };
@@ -100,24 +106,49 @@ diff -Nuar /home/micky/esp/crosstool-NG/.build/xtensa-esp32-elf/src/gcc/libstdc+
 diff -Nuar cow-stdexcept.orig.cc cow-stdexcept.new.cc
 --- a/libstdc++-v3/src/c++11/cow-stdexcept.cc    2019-09-28 23:24:02.000000000 +0300
 +++ b/libstdc++-v3/src/c++11/cow-stdexcept.cc    2019-09-29 01:53:37.150502500 +0300
-@@ -41,17 +41,17 @@
-   // Copy constructors and assignment operators defined using COW std::string
-
-   logic_error::logic_error(const logic_error& e) noexcept
--  : _M_msg(e._M_msg) { }
-+  : exception(e), _M_msg(e._M_msg) { }
-
+@@ -64,7 +64,7 @@
+   : exception(e), _M_msg(e._M_msg) { }
+ 
    logic_error& logic_error::operator=(const logic_error& e) noexcept
 -  { _M_msg = e._M_msg; return *this; }
 +  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
-
+ 
+ #if _GLIBCXX_FULLY_DYNAMIC_STRING == 0
+   logic_error::logic_error(logic_error&& e) noexcept = default;
+@@ -73,11 +73,11 @@
+   logic_error::operator=(logic_error&& e) noexcept = default;
+ #else
+   logic_error::logic_error(logic_error&& e) noexcept
+-  : exception(e), _M_msg(e._M_msg) { }
++  : exception(std::forward<logic_error>(e)), _M_msg(e._M_msg) { }
+ 
+   logic_error&
+   logic_error::operator=(logic_error&& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(std::forward<logic_error>(e)); _M_msg = e._M_msg; return *this; }
+ #endif
+ 
    runtime_error::runtime_error(const runtime_error& e) noexcept
--  : _M_msg(e._M_msg) { }
-+  : exception(e), _M_msg(e._M_msg) { }
-
+@@ -85,7 +85,7 @@
+ 
    runtime_error&
    runtime_error::operator=(const runtime_error& e) noexcept
 -  { _M_msg = e._M_msg; return *this; }
 +  { exception::operator=(e); _M_msg = e._M_msg; return *this; }
-
+ 
+ #if _GLIBCXX_FULLY_DYNAMIC_STRING == 0
+   runtime_error::runtime_error(runtime_error&& e) noexcept = default;
+@@ -94,11 +94,11 @@
+   runtime_error::operator=(runtime_error&& e) noexcept = default;
+ #else
+   runtime_error::runtime_error(runtime_error&& e) noexcept
+-  : exception(e), _M_msg(e._M_msg) { }
++  : exception(std::forward<runtime_error>(e)), _M_msg(e._M_msg) { }
+ 
+   runtime_error&
+   runtime_error::operator=(runtime_error&& e) noexcept
+-  { _M_msg = e._M_msg; return *this; }
++  { exception::operator=(std::forward<runtime_error>(e)); _M_msg = e._M_msg; return *this; }
+ #endif
+ 
    // New C++11 constructors:

@@ -1,15 +1,3 @@
-diff -Nuar a/libstdc++-v3/include/ext/array_allocator.h b/libstdc++-v3/include/ext/array_allocator.h
---- a/libstdc++-v3/include/ext/array_allocator.h	2019-11-23 21:17:09.850984700 +0300
-+++ b/libstdc++-v3/include/ext/array_allocator.h	2019-11-23 21:51:17.631012900 +0300
-@@ -153,7 +153,7 @@
-       allocate(size_type __n, const void* = 0)
-       {
- 	if (_M_array == 0 || _M_used + __n > _M_array->size())
--	  std::__throw_bad_alloc();
-+	  std::__throw_bad_alloc(__n * sizeof(value_type));
- 	pointer __ret = _M_array->begin() + _M_used;
- 	_M_used += __n;
- 	return __ret;
 diff -Nuar a/libstdc++-v3/include/ext/bitmap_allocator.h b/libstdc++-v3/include/ext/bitmap_allocator.h
 --- a/libstdc++-v3/include/ext/bitmap_allocator.h	2019-11-23 21:17:09.855864600 +0300
 +++ b/libstdc++-v3/include/ext/bitmap_allocator.h	2019-11-23 21:39:00.064439500 +0300

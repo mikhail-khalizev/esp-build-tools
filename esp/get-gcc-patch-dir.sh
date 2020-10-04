@@ -1,7 +1,7 @@
 CT_LIB_DIR=$PWD
 
-. $PWD/samples/xtensa-esp32-elf/crosstool.config
 . $PWD/scripts/functions
+. .config
 
 devel_url=$CT_GCC_DEVEL_URL
 devel_branch=$CT_GCC_DEVEL_BRANCH

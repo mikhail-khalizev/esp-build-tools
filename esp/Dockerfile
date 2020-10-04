@@ -68,6 +68,8 @@ RUN    set -euo pipefail \
 FROM base as tools
 
 RUN    export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
+    && apt-get install -y software-properties-common \
     && add-apt-repository ppa:ubuntu-toolchain-r/test \
     && apt-get update \
     && apt-get install -y \

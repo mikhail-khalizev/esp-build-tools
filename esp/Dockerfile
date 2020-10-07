@@ -128,3 +128,4 @@ RUN    set +x \
     && cd $IDF_PATH/components \
     && find \( -name tests \) -exec rm -rf {} + \
     && rm -rf ~/my-docker
+

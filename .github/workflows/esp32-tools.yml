@@ -78,3 +78,21 @@ jobs:
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG
         docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
         docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
+
+    - name: Publish
+      if: github.ref == 'refs/heads/feature/gcc-10'
+      run: |
+        docker run --rm -v $PWD:/root/share  local-tools  bash -c "cp -rf \$IDF_PATH/version.txt \$IDF_PATH/tag.txt /root/share/"
+
+        TAG=`cat tag.txt`
+        VERSION=`cat version.txt`
+
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION-gcc10
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG-gcc10
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest-gcc10
+        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest-gcc10
+
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION-gcc10
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG-gcc10
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest-gcc10
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest-gcc10

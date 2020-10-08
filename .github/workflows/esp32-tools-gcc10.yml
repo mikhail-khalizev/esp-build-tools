@@ -1,4 +1,4 @@
-name: esp32-tools
+name: esp32-tools-gcc10
 
 on:
   push:

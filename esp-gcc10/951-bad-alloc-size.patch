@@ -1,0 +1,175 @@
+diff -Nuar a/libstdc++-v3/include/ext/bitmap_allocator.h b/libstdc++-v3/include/ext/bitmap_allocator.h
+--- a/libstdc++-v3/include/ext/bitmap_allocator.h	2019-11-23 21:17:09.855864600 +0300
++++ b/libstdc++-v3/include/ext/bitmap_allocator.h	2019-11-23 21:39:00.064439500 +0300
+@@ -1016,1 +1016,1 @@
+-	  std::__throw_bad_alloc();
++	  std::__throw_bad_alloc(__n * sizeof(value_type));
+diff -Nuar a/libstdc++-v3/include/ext/malloc_allocator.h b/libstdc++-v3/include/ext/malloc_allocator.h
+--- a/libstdc++-v3/include/ext/malloc_allocator.h	2019-11-23 21:17:10.778182600 +0300
++++ b/libstdc++-v3/include/ext/malloc_allocator.h	2019-11-23 21:38:48.871688500 +0300
+@@ -99,2 +99,2 @@
+ 	  if (__n > this->max_size())
+-	  std::__throw_bad_alloc();
++	  std::__throw_bad_alloc(__n * sizeof(value_type));
+@@ -116,2 +116,2 @@
+ 	if (!__ret)
+-	  std::__throw_bad_alloc();
++	  std::__throw_bad_alloc(__n * sizeof(value_type));
+@@ -120,2 +120,2 @@
+ 	      deallocate(__ret, __n);
+-	      std::__throw_bad_alloc();
++	      std::__throw_bad_alloc(__n * sizeof(value_type));
+diff -Nuar a/libstdc++-v3/include/ext/mt_allocator.h b/libstdc++-v3/include/ext/mt_allocator.h
+--- a/libstdc++-v3/include/ext/mt_allocator.h	2019-11-23 21:17:09.901736500 +0300
++++ b/libstdc++-v3/include/ext/mt_allocator.h	2019-11-23 21:38:40.179446500 +0300
+@@ -689,1 +689,1 @@
+-	std::__throw_bad_alloc();
++	std::__throw_bad_alloc(__n * sizeof(value_type));
+diff -Nuar a/libstdc++-v3/include/ext/new_allocator.h b/libstdc++-v3/include/ext/new_allocator.h
+--- a/libstdc++-v3/include/ext/new_allocator.h	2019-11-23 21:17:10.774278600 +0300
++++ b/libstdc++-v3/include/ext/new_allocator.h	2019-11-23 21:38:36.007052600 +0300
+@@ -97,1 +97,1 @@
+-	  std::__throw_bad_alloc();
++	  std::__throw_bad_alloc(__n * sizeof(value_type));
+diff -Nuar a/libstdc++-v3/include/ext/pool_allocator.h b/libstdc++-v3/include/ext/pool_allocator.h
+--- a/libstdc++-v3/include/ext/pool_allocator.h	2019-11-23 21:17:10.788918700 +0300
++++ b/libstdc++-v3/include/ext/pool_allocator.h	2019-11-23 21:38:26.962475700 +0300
+@@ -217,2 +217,2 @@
+ 	  if (__n > this->max_size())
+-	    std::__throw_bad_alloc();
++	    std::__throw_bad_alloc(__n * sizeof(value_type));
+@@ -247,7 +247,7 @@
+ 		  __ret = reinterpret_cast<_Tp*>(__result);
+ 		}
+ 	      if (__ret == 0)
+-		std::__throw_bad_alloc();
++		std::__throw_bad_alloc(__n * sizeof(value_type));
+ 	    }
+ 	}
+       return __ret;
+diff -Nuar a/libstdc++-v3/include/ext/throw_allocator.h b/libstdc++-v3/include/ext/throw_allocator.h
+--- a/libstdc++-v3/include/ext/throw_allocator.h	2019-11-23 21:17:10.802582700 +0300
++++ b/libstdc++-v3/include/ext/throw_allocator.h	2019-11-23 21:38:14.132976100 +0300
+@@ -829,7 +829,7 @@
+       allocate(size_type __n, std::allocator<void>::const_pointer hint = 0)
+       {
+ 	if (__n > this->max_size())
+-	  std::__throw_bad_alloc();
++	  std::__throw_bad_alloc(__n * sizeof(value_type));
+
+ 	throw_conditionally();
+ 	pointer const a = _M_allocator.allocate(__n, hint);
+diff -Nuar a/libstdc++-v3/libsupc++/new_op.cc b/libstdc++-v3/libsupc++/new_op.cc
+--- a/libstdc++-v3/libsupc++/new_op.cc	2019-11-23 21:17:36.773904300 +0300
++++ b/libstdc++-v3/libsupc++/new_op.cc	2019-11-23 21:27:22.307845600 +0300
+@@ -51,7 +51,7 @@
+     {
+       new_handler handler = std::get_new_handler ();
+       if (! handler)
+-	_GLIBCXX_THROW_OR_ABORT(bad_alloc());
++	_GLIBCXX_THROW_OR_ABORT(bad_alloc(sz));
+       handler ();
+     }
+
+diff -Nuar a/libstdc++-v3/libsupc++/vec.cc b/libstdc++-v3/libsupc++/vec.cc
+--- a/libstdc++-v3/libsupc++/vec.cc	2019-11-23 21:17:36.837343900 +0300
++++ b/libstdc++-v3/libsupc++/vec.cc	2019-11-23 21:29:55.525952700 +0300
+@@ -65,10 +65,10 @@
+ 			     std::size_t padding_size)
+     {
+       if (element_size && element_count > std::size_t(-1) / element_size)
+-	_GLIBCXX_THROW_OR_ABORT(std::bad_alloc());
++	_GLIBCXX_THROW_OR_ABORT(std::bad_alloc());
+       std::size_t size = element_count * element_size;
+       if (size + padding_size < size)
+-	_GLIBCXX_THROW_OR_ABORT(std::bad_alloc());
++	_GLIBCXX_THROW_OR_ABORT(std::bad_alloc(size));
+       return size + padding_size;
+     }
+   }
+diff -Nuar a/libstdc++-v3/src/c++11/functexcept.cc b/libstdc++-v3/src/c++11/functexcept.cc
+--- a/libstdc++-v3/src/c++11/functexcept.cc	2019-11-23 21:17:36.598223300 +0300
++++ b/libstdc++-v3/src/c++11/functexcept.cc	2019-11-23 21:38:01.610908600 +0300
+@@ -62,6 +62,14 @@
+   { _GLIBCXX_THROW_OR_ABORT(bad_alloc()); }
+
+   void
++  __throw_bad_alloc(int size)
++  { _GLIBCXX_THROW_OR_ABORT(bad_alloc(size)); }
++
++  void
++  __throw_bad_alloc(unsigned int size)
++  { _GLIBCXX_THROW_OR_ABORT(bad_alloc(size)); }
++
++  void
+   __throw_bad_cast()
+   { _GLIBCXX_THROW_OR_ABORT(bad_cast()); }
+
+diff -Nuar a/libstdc++-v3/include/bits/functexcept.h b/libstdc++-v3/include/bits/functexcept.h
+--- a/libstdc++-v3/include/bits/functexcept.h	2019-11-23 21:17:09.310280900 +0300
++++ b/libstdc++-v3/include/bits/functexcept.h	2019-11-24 01:47:53.230738900 +0300
+@@ -51,6 +51,14 @@
+   void
+   __throw_bad_alloc(void) __attribute__((__noreturn__));
+
++  // Helper for exception objects in <new>
++  void
++  __throw_bad_alloc(int size) __attribute__((__noreturn__));
++
++  // Helper for exception objects in <new>
++  void
++  __throw_bad_alloc(unsigned int size) __attribute__((__noreturn__));
++
+   // Helper for exception objects in <typeinfo>
+   void
+   __throw_bad_cast(void) __attribute__((__noreturn__));
+diff -Nuar a/libstdc++-v3/src/c++98/bitmap_allocator.cc b/libstdc++-v3/src/c++98/bitmap_allocator.cc
+--- a/libstdc++-v3/src/c++98/bitmap_allocator.cc	2019-11-23 21:17:36.716319800 +0300
++++ b/libstdc++-v3/src/c++98/bitmap_allocator.cc	2019-11-23 21:52:35.402522000 +0300
+@@ -89,7 +89,7 @@
+ 	    *__ret = __sz;
+ 	    return __ret + 1;
+ 	  }
+-	std::__throw_bad_alloc();
++	std::__throw_bad_alloc(__sz + sizeof(size_t));
+       }
+     else
+       {
+diff -Nuar a/libstdc++-v3/libsupc++/bad_alloc.cc b/libstdc++-v3/libsupc++/bad_alloc.cc
+--- a/libstdc++-v3/libsupc++/bad_alloc.cc    2019-11-26 18:26:26.155104700 +0300
++++ b/libstdc++-v3/libsupc++/bad_alloc.cc    2019-11-26 18:25:22.677992400 +0300
+@@ -25,6 +25,8 @@
+
+ #include "new"
+
++void (*std::bad_alloc::construct)(bad_alloc* ex);
++
+ std::bad_alloc::~bad_alloc() _GLIBCXX_USE_NOEXCEPT { }
+
+ const char*
+diff -Nuar a/libstdc++-v3/libsupc++/new b/libstdc++-v3/libsupc++/new
+--- a/libstdc++-v3/libsupc++/new    2019-11-23 21:17:36.802207400 +0300
++++ b/libstdc++-v3/libsupc++/new    2019-11-23 21:52:55.845785400 +0300
+@@ -56,2 +56,12 @@
++#define BAD_ALLOC_SIZE_ENABLE
++#define BAD_ALLOC_CONSTRUCT_HOOK
++    int _size = 0;
+   public:
+-    bad_alloc() throw() { }
++    static void (*construct)(bad_alloc* ex);
++
++    bad_alloc() throw() {
++      if (construct != ((void*)0))
++        construct(this);
++    }
++    bad_alloc(int size) throw() : bad_alloc() { _size = size; }
++    bad_alloc(unsigned int size) throw() : bad_alloc() { _size = 2147483647u < size ? 2147483647 : (int)size; }
+@@ -62,6 +72,8 @@
+
+     // See comment in eh_exception.cc.
+     virtual const char* what() const throw();
++
++    int size() const { return _size; }
+   };
+
+ #if __cplusplus >= 201103L

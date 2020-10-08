@@ -3,8 +3,8 @@ name: esp32-tools
 on:
   push:
     paths:
-      - 'esp/**'
-      - '.github/workflows/esp32-tools.yml'
+      - 'esp-gcc10/**'
+      - '.github/workflows/esp32-tools-gcc10.yml'
   schedule:
       - cron: '0 10 * * WED'
 
@@ -37,7 +37,7 @@ jobs:
 
     - name: Build xtensa-gcc
       run: "
-           cd esp
+           cd esp-gcc10
         && docker build
             --pull
             --target tools-xtensa-gcc
@@ -50,7 +50,7 @@ jobs:
 
     - name: Build esp
       run: "
-           cd esp
+           cd esp-gcc10
         && docker build
             --target tools
             --tag local-tools
@@ -69,12 +69,12 @@ jobs:
         TAG=`cat tag.txt`
         VERSION=`cat version.txt`
 
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG
-        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest
-        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION-gcc10
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG-gcc10
+        docker tag local-tools $DOCKER_HUB_REGISTRY_REPOSITORY:latest-gcc10
+        docker tag local-tools $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest-gcc10
 
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG
-        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest
-        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$VERSION-gcc10
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:$TAG-gcc10
+        docker push $DOCKER_HUB_REGISTRY_REPOSITORY:latest-gcc10
+        docker push $GITHUB_DOCKER_REGISTRY_REPOSITORY:latest-gcc10

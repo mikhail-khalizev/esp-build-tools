@@ -119,6 +119,7 @@ RUN    set +x \
     && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then idf.py set-target esp32s2 ; fi \
     && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
     && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
+    && export EXCLUDE_COMPONENTS="spiffs" \
     && idf.py build \
     \
     \

@@ -114,15 +114,6 @@ RUN    set +x \
     && git describe --always --tags --abbrev=0 > tag.txt \
     \
     \
-    `# Check that example project builds successfully.` \
-    && cd $IDF_PATH/examples/get-started/hello_world \
-    && if test "${COMPILER}" = "xtensa-esp32s2-elf" ; then idf.py set-target esp32s2 ; fi \
-    && echo "CONFIG_CXX_EXCEPTIONS=y" >> sdkconfig \
-    && echo "CONFIG_CXX_EXCEPTIONS_EMG_POOL_SIZE=128" >> sdkconfig \
-    && export EXCLUDE_COMPONENTS="spiffs" \
-    && idf.py build \
-    \
-    \
     `# Reduce size` \
     && cd $IDF_PATH \
     && find \( -name examples -o -name doc -o -name docs -o -name testdata -o -name '.git*' -o -name '.*.yml' \) -exec rm -rf {} + \
